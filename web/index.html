@@ -1,442 +1,543 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Toolbox - Merge, Delete Pages, Extract Pages</title>
+    <meta name="description" content="Simple online PDF tools - Merge, delete pages, and extract pages from your PDF files.">
+    <title>PDF Toolbox - Simple Online PDF Tools</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: {
+                            50: '#F6F7F9',
+                            100: '#E8EAED',
+                            200: '#D1D4DB',
+                            300: '#B8BCC7',
+                            400: '#8F95A3',
+                            500: '#73788A',
+                            600: '#565B6B',
+                            700: '#434854',
+                            800: '#2F333C',
+                            900: '#1F2229',
+                        },
+                        primary: {
+                            50: '#E8EDF2',
+                            100: '#D0DCE6',
+                            200: '#B0C4D5',
+                            300: '#8AACC4',
+                            400: '#6491B3',
+                            500: '#4A7AA3',
+                            600: '#3B6489',
+                            700: '#2F5270',
+                            800: '#264059',
+                            900: '#1F3A5F',
+                        },
+                        success: {
+                            light: '#D1EAD9',
+                            DEFAULT: '#5B9E6F',
+                            dark: '#3D7A51',
+                        },
+                        error: {
+                            light: '#F0D4D4',
+                            DEFAULT: '#C45A5A',
+                            dark: '#9E3F3F',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)',
+                        'card-hover': '0 2px 6px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04)',
+                        'input': '0 0 0 3px rgba(31, 58, 95, 0.1)',
+                    },
+                    borderRadius: {
+                        'card': '14px',
+                        'input': '8px',
+                    },
+                },
+            },
+        }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            font-family: 'Inter', sans-serif;
+        :root {
+            --color-bg: #F6F7F9;
+            --color-card: #FFFFFF;
+            --color-primary: #1F3A5F;
+            --color-primary-hover: #2F5270;
+            --color-text: #2F333C;
+            --color-text-muted: #73788A;
+            --color-border: #E8EAED;
+            --color-success-light: #D1EAD9;
+            --color-success: #5B9E6F;
+            --color-error-light: #F0D4D4;
+            --color-error: #C45A5A;
+        }
+
+        .dark {
+            --color-bg: #1A1B1E;
+            --color-card: #25262B;
+            --color-primary: #4A7AA3;
+            --color-primary-hover: #6491B3;
+            --color-text: #E8EAED;
+            --color-text-muted: #8F95A3;
+            --color-border: #2F333C;
+            --color-success-light: #3D7A51;
+            --color-success: #5B9E6F;
+            --color-error-light: #9E3F3F;
+            --color-error: #C45A5A;
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
 
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        .dark body {
+            background-color: var(--color-bg);
         }
 
-        .tab-btn {
-            position: relative;
-            transition: all 0.3s ease;
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
         }
 
-        .tab-btn.active {
-            color: #7c3aed;
+        ::-webkit-scrollbar-track {
+            background: transparent;
         }
 
-        .tab-btn.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #7c3aed, #a78bfa);
-            border-radius: 3px 3px 0 0;
+        ::-webkit-scrollbar-thumb {
+            background: #D1D4DB;
+            border-radius: 4px;
         }
 
+        ::-webkit-scrollbar-thumb:hover {
+            background: #B8BCC7;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #434854;
+        }
+
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #565B6B;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        .animate-slide-in {
+            animation: slideInRight 0.3s ease-out;
+        }
+
+        .spinner {
+            border: 2.5px solid var(--color-border);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Upload zone */
         .upload-zone {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            border: 2px dashed #cbd5e1;
-            transition: all 0.3s ease;
-        }
-
-        .upload-zone:hover {
-            border-color: #a78bfa;
-            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
-            transform: translateY(-2px);
-        }
-
-        .upload-zone.drag-over {
-            border-color: #7c3aed;
-            background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
-            transform: scale(1.02);
-        }
-
-        .file-item {
-            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
-            border: 1px solid #e9d5ff;
+            border: 2px dashed var(--color-border);
+            background-color: var(--color-card);
             transition: all 0.2s ease;
         }
 
+        .upload-zone:hover {
+            border-color: var(--color-primary);
+            background-color: var(--color-bg);
+        }
+
+        .upload-zone.drag-over {
+            border-color: var(--color-primary);
+            background-color: rgba(31, 58, 95, 0.05);
+        }
+
+        .dark .upload-zone.drag-over {
+            background-color: rgba(74, 122, 163, 0.1);
+        }
+
+        /* File item */
+        .file-item {
+            background-color: var(--color-card);
+            border: 1px solid var(--color-border);
+            transition: all 0.15s ease;
+        }
+
         .file-item:hover {
-            border-color: #c4b5fd;
-            transform: translateX(4px);
+            border-color: #B8BCC7;
+        }
+
+        .dark .file-item:hover {
+            border-color: #565B6B;
         }
 
         .file-item.dragging {
             opacity: 0.5;
-            transform: scale(0.98);
+            transform: scale(0.99);
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
         }
 
-        .btn-primary::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s ease;
+        .toast {
+            pointer-events: auto;
+            background-color: var(--color-card);
+            border: 1px solid var(--color-border);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            max-width: 400px;
         }
 
-        .btn-primary:hover:not(:disabled)::before {
-            left: 100%;
+        .dark .toast {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 40px -10px rgba(124, 58, 237, 0.5);
+        .toast.success {
+            border-left: 3px solid var(--color-success);
         }
 
-        .btn-primary:disabled {
-            background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
-            cursor: not-allowed;
+        .toast.error {
+            border-left: 3px solid var(--color-error);
         }
 
-        .status-success {
-            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-            border-left: 4px solid #10b981;
+        .toast.info {
+            border-left: 3px solid var(--color-primary);
         }
 
-        .status-error {
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-            border-left: 4px solid #ef4444;
+        /* Modal overlay */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
         }
 
-        .status-info {
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-            border-left: 4px solid #3b82f6;
+        .modal-card {
+            background-color: var(--color-card);
         }
 
+        /* Focus states */
         .input-field {
-            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
-            border: 2px solid #e9d5ff;
-            transition: all 0.3s ease;
+            background-color: var(--color-card);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            transition: all 0.15s ease;
         }
 
         .input-field:focus {
-            border-color: #a78bfa;
-            box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.1);
             outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(31, 58, 95, 0.1);
         }
 
-        .loading-overlay {
-            backdrop-filter: blur(8px);
+        .dark .input-field:focus {
+            box-shadow: 0 0 0 3px rgba(74, 122, 163, 0.2);
         }
 
-        .spinner {
-            border: 4px solid #e9d5ff;
-            border-top: 4px solid #7c3aed;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+            transition: all 0.15s ease;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .btn-primary:hover:not(:disabled) {
+            background-color: var(--color-primary-hover);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
-        .tab-panel {
-            animation: fadeIn 0.3s ease;
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            transition: all 0.15s ease;
         }
 
-        .icon-gradient {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        .btn-secondary:hover {
+            border-color: var(--color-text-muted);
+            background-color: var(--color-bg);
         }
 
-        .feature-card {
-            transition: all 0.3s ease;
-        }
-
-        .remove-btn {
+        /* Tool card */
+        .tool-card {
+            background-color: var(--color-card);
+            border: 1px solid var(--color-border);
             transition: all 0.2s ease;
         }
 
-        .remove-btn:hover {
-            background: #fee2e2;
-            transform: scale(1.1);
+        .tool-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            border-color: #D1D4DB;
         }
 
-        .page-number {
-            width: 28px;
-            height: 28px;
-            background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
-            color: white;
-            border-radius: 50%;
+        .dark .tool-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            border-color: #565B6B;
+        }
+
+        /* Status messages */
+        .status-message {
+            border-radius: 8px;
+            padding: 14px 16px;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 600;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .status-message.success {
+            background-color: var(--color-success-light);
+            color: var(--color-success-dark, #3D7A51);
+        }
+
+        .status-message.error {
+            background-color: var(--color-error-light);
+            color: var(--color-error-dark, #9E3F3F);
+        }
+
+        .status-message.info {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        /* Page number badge */
+        .page-badge {
+            background-color: var(--color-bg);
+            color: var(--color-text-muted);
+            font-feature-settings: 'tnum';
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            height: 3px;
+            background-color: var(--color-border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--color-primary);
+            transition: width 0.3s ease;
+        }
+
+        /* Icon containers */
+        .icon-container {
+            background-color: var(--color-bg);
+            color: var(--color-primary);
         }
     </style>
 </head>
-<body class="min-h-screen py-8 px-4">
-    <!-- Background decoration -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
-        <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
-    </div>
+<body class="min-h-screen">
+    <!-- Dark mode toggle -->
+    <button id="theme-toggle" class="fixed top-6 right-6 z-50 w-10 h-10 rounded-lg btn-secondary flex items-center justify-center" aria-label="Toggle dark mode">
+        <svg class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM2.25 12a.75.75 0 01.75-.75h2.25a.75.75 0 010 1.5H3a.75.75 0 01-.75-.75zM12 18.75a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zM7.5 15a.75.75 0 01.75.75h2.25a.75.75 0 010 1.5H8.25A.75.75 0 017.5 15zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.25 15a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5h2.25a.75.75 0 01.75.75zM12 5.25a.75.75 0 01.75-.75h2.25a.75.75 0 010 1.5h-2.25A.75.75 0 0112 5.25z"/>
+        </svg>
+        <svg class="w-5 h-5 block dark:hidden" fill="currentColor" viewBox="0 0 24 24">
+            <path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.7-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clip-rule="evenodd"/>
+        </svg>
+    </button>
 
-    <div class="relative z-10 max-w-5xl mx-auto">
+    <!-- Main Container -->
+    <div class="max-w-5xl mx-auto px-5 py-12 md:py-16">
         <!-- Header -->
-        <header class="text-center mb-10">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl icon-gradient shadow-lg shadow-red-500/30 mb-6">
-                <svg class="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,13H11V18A2,2 0 0,1 9,20H7A2,2 0 0,1 5,18V4A2,2 0 0,1 7,2H14V8H20V18A2,2 0 0,1 18,20H16A2,2 0 0,1 14,18V13Z"/>
+        <header class="text-center mb-14">
+            <div class="inline-flex items-center justify-center w-14 h-14 rounded-xl icon-container mb-5">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
                 </svg>
             </div>
-            <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-3 tracking-tight">
+            <h1 class="text-3xl md:text-4xl font-semibold tracking-tight mb-3" style="color: var(--color-text);">
                 PDF Toolbox
             </h1>
-            <p class="text-white/80 text-lg max-w-2xl mx-auto">
-                Îmbină, șterge sau extrage pagini din documentele tale PDF - rapid și simplu
+            <p class="text-lg" style="color: var(--color-text-muted);">
+                Simple online PDF tools
             </p>
         </header>
 
-        <!-- Main Card -->
-        <main class="glass-card rounded-3xl shadow-2xl overflow-hidden">
-            <!-- Tabs -->
-            <div class="flex border-b border-gray-200/50 overflow-x-auto">
-                <button class="tab-btn active flex-1 min-w-max px-6 py-5 text-sm font-semibold text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2" data-tab="merge">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+        <!-- Tool Cards -->
+        <div class="grid md:grid-cols-3 gap-5 mb-14">
+            <!-- Merge PDF Card -->
+            <div class="tool-card rounded-card p-6 cursor-pointer" onclick="openModal('merge')">
+                <div class="icon-container w-11 h-11 rounded-lg flex items-center justify-center mb-4">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.413 7.5l6.762 9v9H4.5v-9l6.762-9zm0 0L12 12.074M17.5 7.5l6.762 9v9H15.5v-9l6.762-9zm0 0L22 12.074"/>
                     </svg>
-                    Îmbinare PDF
-                </button>
-                <button class="tab-btn flex-1 min-w-max px-6 py-5 text-sm font-semibold text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2" data-tab="delete">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                    Șterge Pagini
-                </button>
-                <button class="tab-btn flex-1 min-w-max px-6 py-5 text-sm font-semibold text-gray-500 hover:text-gray-700 flex items-center justify-center gap-2" data-tab="extract">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                    </svg>
-                    Extrage Pagini
-                </button>
+                </div>
+                <h3 class="font-semibold text-base mb-2" style="color: var(--color-text);">Merge PDFs</h3>
+                <p class="text-sm leading-relaxed" style="color: var(--color-text-muted);">
+                    Combine multiple PDF files into a single document. Reorder files before merging.
+                </p>
             </div>
 
-            <div class="p-6 md:p-10">
-                <!-- Merge Panel -->
-                <div id="merge-panel" class="tab-panel">
-                    <div class="text-center mb-8">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Îmbinare PDF-uri</h2>
-                        <p class="text-gray-500">Combină mai multe fișiere PDF într-un singur document. Trage pentru a reordona.</p>
-                    </div>
-
-                    <!-- Upload Zone -->
-                    <div id="merge-upload-zone" class="upload-zone rounded-2xl p-10 text-center cursor-pointer mb-6">
-                        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center">
-                            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                            </svg>
-                        </div>
-                        <p class="text-gray-700 font-medium mb-1">Trage fișierele PDF aici</p>
-                        <p class="text-gray-400 text-sm">sau click pentru a selecta (max 20 fișiere, 100 MB fiecare)</p>
-                        <input type="file" id="merge-file-input" class="hidden" accept="application/pdf" multiple>
-                    </div>
-
-                    <!-- File List -->
-                    <div id="merge-file-list" class="space-y-3 mb-6 hidden">
-                        <!-- File items will be inserted here -->
-                    </div>
-
-                    <!-- Action Button -->
-                    <button id="merge-btn" class="btn-primary w-full py-4 px-8 rounded-xl font-semibold text-white text-lg" disabled>
-                        <span class="flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                            </svg>
-                            Îmbinare PDF-uri
-                        </span>
-                    </button>
-
-                    <!-- Status Message -->
-                    <div id="merge-status" class="mt-6 rounded-xl p-4 hidden"></div>
+            <!-- Delete Pages Card -->
+            <div class="tool-card rounded-card p-6 cursor-pointer" onclick="openModal('delete')">
+                <div class="icon-container w-11 h-11 rounded-lg flex items-center justify-center mb-4">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
+                    </svg>
                 </div>
-
-                <!-- Delete Pages Panel -->
-                <div id="delete-panel" class="tab-panel hidden">
-                    <div class="text-center mb-8">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Șterge Pagini</h2>
-                        <p class="text-gray-500">Elimină paginile nedorite din PDF-ul tău</p>
-                    </div>
-
-                    <!-- Upload Zone -->
-                    <div id="delete-upload-zone" class="upload-zone rounded-2xl p-10 text-center cursor-pointer mb-6">
-                        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-red-100 to-pink-100 flex items-center justify-center">
-                            <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                            </svg>
-                        </div>
-                        <p class="text-gray-700 font-medium mb-1">Trage PDF-ul aici</p>
-                        <p class="text-gray-400 text-sm">sau click pentru a selecta (max 100 MB)</p>
-                        <input type="file" id="delete-file-input" class="hidden" accept="application/pdf">
-                    </div>
-
-                    <!-- Selected File Display -->
-                    <div id="delete-file-display" class="hidden mb-6">
-                        <div class="file-item rounded-xl p-4 flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,13H11V18A2,2 0 0,1 9,20H7A2,2 0 0,1 5,18V4A2,2 0 0,1 7,2H14V8H20V18A2,2 0 0,1 18,20H16A2,2 0 0,1 14,18V13Z"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p id="delete-filename" class="font-semibold text-gray-900"></p>
-                                    <p id="delete-filesize" class="text-sm text-gray-500"></p>
-                                </div>
-                            </div>
-                            <button id="delete-clear-file" class="remove-btn w-10 h-10 rounded-full flex items-center justify-center">
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Pages Specification -->
-                    <div class="mb-6">
-                        <label for="delete-pages-spec" class="block text-sm font-semibold text-gray-700 mb-3">
-                            Paginile de șters
-                        </label>
-                        <input type="text" id="delete-pages-spec" class="input-field w-full rounded-xl px-5 py-4 text-gray-900" placeholder="ex: 1,3,5-7">
-                        <p class="text-gray-400 text-sm mt-3 flex items-center gap-1">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            Folosește virgulă pentru separare și cratimă pentru interval (ex: 1-5)
-                        </p>
-                    </div>
-
-                    <!-- Action Button -->
-                    <button id="delete-btn" class="btn-primary w-full py-4 px-8 rounded-xl font-semibold text-white text-lg" disabled>
-                        <span class="flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                            </svg>
-                            Șterge Pagini & Descarcă
-                        </span>
-                    </button>
-
-                    <!-- Status Message -->
-                    <div id="delete-status" class="mt-6 rounded-xl p-4 hidden"></div>
-                </div>
-
-                <!-- Extract Pages Panel -->
-                <div id="extract-panel" class="tab-panel hidden">
-                    <div class="text-center mb-8">
-                        <h2 class="text-2xl font-bold text-gray-900 mb-2">Extrage Pagini</h2>
-                        <p class="text-gray-500">Creează un PDF nou cu paginile selectate</p>
-                    </div>
-
-                    <!-- Upload Zone -->
-                    <div id="extract-upload-zone" class="upload-zone rounded-2xl p-10 text-center cursor-pointer mb-6">
-                        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center">
-                            <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                            </svg>
-                        </div>
-                        <p class="text-gray-700 font-medium mb-1">Trage PDF-ul aici</p>
-                        <p class="text-gray-400 text-sm">sau click pentru a selecta (max 100 MB)</p>
-                        <input type="file" id="extract-file-input" class="hidden" accept="application/pdf">
-                    </div>
-
-                    <!-- Selected File Display -->
-                    <div id="extract-file-display" class="hidden mb-6">
-                        <div class="file-item rounded-xl p-4 flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M13,13H11V18A2,2 0 0,1 9,20H7A2,2 0 0,1 5,18V4A2,2 0 0,1 7,2H14V8H20V18A2,2 0 0,1 18,20H16A2,2 0 0,1 14,18V13Z"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p id="extract-filename" class="font-semibold text-gray-900"></p>
-                                    <p id="extract-filesize" class="text-sm text-gray-500"></p>
-                                </div>
-                            </div>
-                            <button id="extract-clear-file" class="remove-btn w-10 h-10 rounded-full flex items-center justify-center">
-                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Pages Specification -->
-                    <div class="mb-6">
-                        <label for="extract-pages-spec" class="block text-sm font-semibold text-gray-700 mb-3">
-                            Paginile de extras
-                        </label>
-                        <input type="text" id="extract-pages-spec" class="input-field w-full rounded-xl px-5 py-4 text-gray-900" placeholder="ex: 1,3-5,7">
-                        <p class="text-gray-400 text-sm mt-3 flex items-center gap-1">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            Folosește virgulă pentru separare și cratimă pentru interval (ex: 1-5)
-                        </p>
-                    </div>
-
-                    <!-- Action Button -->
-                    <button id="extract-btn" class="btn-primary w-full py-4 px-8 rounded-xl font-semibold text-white text-lg" disabled>
-                        <span class="flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                            </svg>
-                            Extrage Pagini & Descarcă
-                        </span>
-                    </button>
-
-                    <!-- Status Message -->
-                    <div id="extract-status" class="mt-6 rounded-xl p-4 hidden"></div>
-                </div>
+                <h3 class="font-semibold text-base mb-2" style="color: var(--color-text);">Delete Pages</h3>
+                <p class="text-sm leading-relaxed" style="color: var(--color-text-muted);">
+                    Remove specific pages from your PDF by specifying page numbers or ranges.
+                </p>
             </div>
-        </main>
+
+            <!-- Extract Pages Card -->
+            <div class="tool-card rounded-card p-6 cursor-pointer" onclick="openModal('extract')">
+                <div class="icon-container w-11 h-11 rounded-lg flex items-center justify-center mb-4">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776"/>
+                    </svg>
+                </div>
+                <h3 class="font-semibold text-base mb-2" style="color: var(--color-text);">Extract Pages</h3>
+                <p class="text-sm leading-relaxed" style="color: var(--color-text-muted);">
+                    Create a new PDF containing only the pages you specify from your document.
+                </p>
+            </div>
+        </div>
 
         <!-- Footer -->
-        <footer class="text-center mt-10">
-            <p class="text-white/60 text-sm">
-                Toate procesările se fac pe server. Fișierele nu sunt stocate.
-            </p>
+        <footer class="text-center text-sm" style="color: var(--color-text-muted);">
+            <p>All processing happens on the server. Your files are not stored after processing.</p>
         </footer>
     </div>
 
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="loading-overlay fixed inset-0 bg-black/40 flex items-center justify-center z-50 hidden">
-        <div class="glass-card rounded-2xl p-10 max-w-sm mx-4 text-center shadow-2xl">
-            <div class="spinner mx-auto mb-6"></div>
-            <p id="loading-text" class="text-gray-800 font-semibold text-lg">Procesare...</p>
-            <p class="text-gray-500 text-sm mt-2">Acest lucru poate dura câteva secunde</p>
+    <!-- Modal Overlay -->
+    <div id="modal-overlay" class="modal-overlay fixed inset-0 z-40 hidden items-center justify-center p-4">
+        <!-- Modal Card -->
+        <div class="modal-card rounded-card shadow-card-hover w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col animate-fade-in">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b" style="border-color: var(--color-border);">
+                <div>
+                    <h2 id="modal-title" class="font-semibold text-lg" style="color: var(--color-text);">Tool Name</h2>
+                    <p id="modal-description" class="text-sm mt-0.5" style="color: var(--color-text-muted);">Description</p>
+                </div>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <svg class="w-5 h-5" style="color: var(--color-text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="px-6 py-5 overflow-y-auto flex-1">
+                <!-- Upload Zone -->
+                <div id="upload-zone" class="upload-zone rounded-input p-8 text-center cursor-pointer mb-5">
+                    <svg class="w-10 h-10 mx-auto mb-3" style="color: var(--color-text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p class="text-sm font-medium mb-1" style="color: var(--color-text);">Drop PDF files here or click to upload</p>
+                    <p class="text-xs" style="color: var(--color-text-muted);" id="upload-hint">Maximum 100 MB per file</p>
+                    <input type="file" id="file-input" class="hidden" accept="application/pdf">
+                </div>
+
+                <!-- File List (for merge) -->
+                <div id="file-list" class="space-y-2 mb-5 hidden">
+                    <!-- Files will be rendered here -->
+                </div>
+
+                <!-- Selected File Display (for delete/extract) -->
+                <div id="file-display" class="hidden mb-5">
+                    <div class="file-item rounded-input p-3 flex items-center justify-between">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <svg class="w-5 h-5 flex-shrink-0" style="color: var(--color-error);" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
+                            </svg>
+                            <span class="text-sm truncate" id="selected-filename" style="color: var(--color-text);"></span>
+                        </div>
+                        <button onclick="clearSelectedFile()" class="text-red-500 hover:text-red-600 p-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pages Specification (for delete/extract) -->
+                <div id="pages-spec-container" class="mb-5 hidden">
+                    <label id="pages-spec-label" class="block text-sm font-medium mb-2" style="color: var(--color-text);">
+                        Pages to delete
+                    </label>
+                    <input type="text" id="pages-spec-input" class="input-field w-full rounded-input px-4 py-2.5 text-sm" placeholder="e.g., 1,3,5-7">
+                    <p class="text-xs mt-2" style="color: var(--color-text-muted);">
+                        Enter page numbers separated by commas. Use hyphens for ranges (e.g., 1-5).
+                    </p>
+                </div>
+
+                <!-- Status Message -->
+                <div id="status-message" class="status-message hidden">
+                    <!-- Status content will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-4 border-t flex items-center justify-between" style="border-color: var(--color-border);">
+                <button onclick="closeModal()" class="btn-secondary px-4 py-2 rounded-input text-sm font-medium">
+                    Cancel
+                </button>
+                <button id="action-btn" class="btn-primary px-5 py-2.5 rounded-input text-sm font-medium" disabled>
+                    Process
+                </button>
+            </div>
         </div>
     </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="modal-overlay fixed inset-0 z-50 hidden items-center justify-center">
+        <div class="modal-card rounded-card p-8 text-center">
+            <div class="spinner w-10 h-10 mx-auto mb-4"></div>
+            <p id="loading-text" class="font-medium" style="color: var(--color-text);">Processing...</p>
+            <p class="text-sm mt-1" style="color: var(--color-text-muted);">This may take a moment</p>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
 
     <script src="app.js"></script>
 </body>

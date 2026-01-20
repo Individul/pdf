@@ -1,200 +1,332 @@
 /**
- * PDF Toolbox - Frontend Application
+ * PDF Toolbox - Professional Frontend
+ * Clean, minimal PDF tools with modal interface
  */
 
-// State
-const state = {
-    merge: {
-        files: [],
-        dragSrcEl: null
-    },
-    delete: {
-        file: null
-    },
-    extract: {
-        file: null
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
+
+const CONFIG = {
+    MAX_FILE_SIZE: 100 * 1024 * 1024,      // 100 MB
+    MAX_MERGE_FILES: 20,
+    API_ENDPOINTS: {
+        merge: '/api/merge',
+        delete: '/api/delete-pages',
+        extract: '/api/extract-pages'
     }
 };
 
-// DOM Elements
-const elements = {
-    tabs: document.querySelectorAll('.tab-btn'),
-    panels: {
-        merge: document.getElementById('merge-panel'),
-        delete: document.getElementById('delete-panel'),
-        extract: document.getElementById('extract-panel')
-    },
-    merge: {
-        uploadZone: document.getElementById('merge-upload-zone'),
-        fileInput: document.getElementById('merge-file-input'),
-        fileList: document.getElementById('merge-file-list'),
-        mergeBtn: document.getElementById('merge-btn'),
-        status: document.getElementById('merge-status')
-    },
-    delete: {
-        uploadZone: document.getElementById('delete-upload-zone'),
-        fileInput: document.getElementById('delete-file-input'),
-        fileDisplay: document.getElementById('delete-file-display'),
-        filename: document.getElementById('delete-filename'),
-        filesize: document.getElementById('delete-filesize'),
-        clearBtn: document.getElementById('delete-clear-file'),
-        pagesSpec: document.getElementById('delete-pages-spec'),
-        deleteBtn: document.getElementById('delete-btn'),
-        status: document.getElementById('delete-status')
-    },
-    extract: {
-        uploadZone: document.getElementById('extract-upload-zone'),
-        fileInput: document.getElementById('extract-file-input'),
-        fileDisplay: document.getElementById('extract-file-display'),
-        filename: document.getElementById('extract-filename'),
-        filesize: document.getElementById('extract-filesize'),
-        clearBtn: document.getElementById('extract-clear-file'),
-        pagesSpec: document.getElementById('extract-pages-spec'),
-        extractBtn: document.getElementById('extract-btn'),
-        status: document.getElementById('extract-status')
-    },
-    loadingOverlay: document.getElementById('loading-overlay'),
-    loadingText: document.getElementById('loading-text')
+// ============================================================================
+// STATE
+// ============================================================================
+
+const state = {
+    currentTool: null,
+    mergeFiles: [],
+    selectedFile: null,
+    isDarkMode: false,
+    dragSrcEl: null
 };
 
-// Constants
-const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100 MB
-const MAX_MERGE_FILES = 20;
+// ============================================================================
+// DOM ELEMENTS
+// ============================================================================
 
-// Utility Functions
+const DOM = {
+    // Theme
+    themeToggle: document.getElementById('theme-toggle'),
+    html: document.documentElement,
+
+    // Modal
+    modalOverlay: document.getElementById('modal-overlay'),
+    modalTitle: document.getElementById('modal-title'),
+    modalDescription: document.getElementById('modal-description'),
+
+    // Upload
+    uploadZone: document.getElementById('upload-zone'),
+    fileInput: document.getElementById('file-input'),
+    uploadHint: document.getElementById('upload-hint'),
+
+    // File display
+    fileList: document.getElementById('file-list'),
+    fileDisplay: document.getElementById('file-display'),
+    selectedFilename: document.getElementById('selected-filename'),
+
+    // Pages spec
+    pagesSpecContainer: document.getElementById('pages-spec-container'),
+    pagesSpecLabel: document.getElementById('pages-spec-label'),
+    pagesSpecInput: document.getElementById('pages-spec-input'),
+
+    // Actions
+    actionBtn: document.getElementById('action-btn'),
+
+    // Status
+    statusMessage: document.getElementById('status-message'),
+
+    // Loading
+    loadingOverlay: document.getElementById('loading-overlay'),
+    loadingText: document.getElementById('loading-text'),
+
+    // Toast
+    toastContainer: document.getElementById('toast-container')
+};
+
+// ============================================================================
+// TOOL CONFIGURATIONS
+// ============================================================================
+
+const TOOLS = {
+    merge: {
+        title: 'Merge PDFs',
+        description: 'Combine multiple PDF files into a single document.',
+        actionLabel: 'Merge',
+        multipleFiles: true,
+        showPagesSpec: false,
+        uploadHint: `Up to ${CONFIG.MAX_MERGE_FILES} files, 100 MB each`
+    },
+    delete: {
+        title: 'Delete Pages',
+        description: 'Remove specific pages from your PDF.',
+        actionLabel: 'Delete & Download',
+        multipleFiles: false,
+        showPagesSpec: true,
+        pagesSpecLabel: 'Pages to delete',
+        uploadHint: 'Maximum 100 MB'
+    },
+    extract: {
+        title: 'Extract Pages',
+        description: 'Create a new PDF with selected pages.',
+        actionLabel: 'Extract & Download',
+        multipleFiles: false,
+        showPagesSpec: true,
+        pagesSpecLabel: 'Pages to extract',
+        uploadHint: 'Maximum 100 MB'
+    }
+};
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
 function formatFileSize(bytes) {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+    return `${Math.round((bytes / Math.pow(k, i)) * 100) / 100} ${sizes[i]}`;
 }
 
-function showStatus(container, message, type = 'info') {
-    container.classList.remove('hidden');
-    container.className = 'rounded-xl p-4 flex items-center gap-3 ' +
-        (type === 'error' ? 'status-error text-red-800' :
-         type === 'success' ? 'status-success text-green-800' :
-         'status-info text-blue-800');
-    container.innerHTML = `
-        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            ${type === 'error' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>' :
-              type === 'success' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>' :
-              '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'}
-        </svg>
-        <span>${message}</span>
-    `;
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
-function hideStatus(container) {
-    container.classList.add('hidden');
+// ============================================================================
+// THEME MANAGEMENT
+// ============================================================================
+
+function initTheme() {
+    const saved = localStorage.getItem('pdf-toolbox-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    state.isDarkMode = saved === 'dark' || (!saved && prefersDark);
+    applyTheme();
 }
 
-function showLoading(text = 'Processing...') {
-    elements.loadingText.textContent = text;
-    elements.loadingOverlay.classList.remove('hidden');
-}
-
-function hideLoading() {
-    elements.loadingOverlay.classList.add('hidden');
-}
-
-function downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-// Tab Switching
-elements.tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-        const tabName = tab.dataset.tab;
-
-        // Update tab buttons
-        elements.tabs.forEach(t => {
-            t.classList.remove('active');
-        });
-        tab.classList.add('active');
-
-        // Update panels
-        Object.values(elements.panels).forEach(panel => panel.classList.add('hidden'));
-        elements.panels[tabName].classList.remove('hidden');
-    });
-});
-
-// File Validation
-function validatePDFFile(file) {
-    if (!file.type.includes('pdf') && !file.name.toLowerCase().endsWith('.pdf')) {
-        throw new Error('Selectează un fișier PDF');
+function applyTheme() {
+    if (state.isDarkMode) {
+        DOM.html.classList.add('dark');
+    } else {
+        DOM.html.classList.remove('dark');
     }
-    if (file.size > MAX_FILE_SIZE) {
-        throw new Error(`Fișier prea mare. Dimensiune maximă: ${formatFileSize(MAX_FILE_SIZE)}`);
+}
+
+function toggleTheme() {
+    state.isDarkMode = !state.isDarkMode;
+    localStorage.setItem('pdf-toolbox-theme', state.isDarkMode ? 'dark' : 'light');
+    applyTheme();
+}
+
+// ============================================================================
+// MODAL MANAGEMENT
+// ============================================================================
+
+function openModal(tool) {
+    state.currentTool = tool;
+    const config = TOOLS[tool];
+
+    // Update modal content
+    DOM.modalTitle.textContent = config.title;
+    DOM.modalDescription.textContent = config.description;
+    DOM.actionBtn.textContent = config.actionLabel;
+    DOM.uploadHint.textContent = config.uploadHint;
+
+    // Reset file input
+    DOM.fileInput.value = '';
+    DOM.fileInput.multiple = config.multipleFiles;
+
+    // Reset state
+    if (tool === 'merge') {
+        state.mergeFiles = [];
+        DOM.fileList.classList.add('hidden');
+        DOM.fileDisplay.classList.add('hidden');
+    } else {
+        state.selectedFile = null;
+        DOM.fileList.classList.add('hidden');
+        DOM.fileDisplay.classList.add('hidden');
+    }
+
+    // Pages spec
+    if (config.showPagesSpec) {
+        DOM.pagesSpecContainer.classList.remove('hidden');
+        DOM.pagesSpecLabel.textContent = config.pagesSpecLabel;
+        DOM.pagesSpecInput.value = '';
+    } else {
+        DOM.pagesSpecContainer.classList.add('hidden');
+    }
+
+    // Hide status
+    hideStatus();
+
+    // Update button state
+    updateActionButton();
+
+    // Show modal
+    DOM.modalOverlay.classList.remove('hidden');
+    DOM.modalOverlay.classList.add('flex');
+
+    // Focus upload zone after animation
+    setTimeout(() => DOM.uploadZone.focus(), 100);
+}
+
+function closeModal() {
+    DOM.modalOverlay.classList.add('hidden');
+    DOM.modalOverlay.classList.remove('flex');
+    state.currentTool = null;
+}
+
+// ============================================================================
+// FILE VALIDATION
+// ============================================================================
+
+function validatePDFFile(file) {
+    if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
+        throw new Error('Please select a valid PDF file.');
+    }
+    if (file.size > CONFIG.MAX_FILE_SIZE) {
+        throw new Error(`File too large. Maximum size is ${formatFileSize(CONFIG.MAX_FILE_SIZE)}.`);
     }
     return true;
 }
 
-// Merge Functionality
-function updateMergeFileList() {
-    const { files } = state.merge;
-    const { fileList, mergeBtn } = elements.merge;
+// ============================================================================
+// FILE UPLOAD HANDLING
+// ============================================================================
 
-    if (files.length === 0) {
-        fileList.classList.add('hidden');
-        mergeBtn.disabled = true;
+function handleFiles(files) {
+    hideStatus();
+    const tool = state.currentTool;
+    const config = TOOLS[tool];
+
+    try {
+        if (tool === 'merge') {
+            handleMergeFiles(files);
+        } else {
+            handleSingleFile(files[0]);
+        }
+    } catch (err) {
+        showStatus(err.message, 'error');
+    }
+
+    updateActionButton();
+}
+
+function handleMergeFiles(files) {
+    const fileArray = Array.from(files);
+
+    // Validate all files
+    for (const file of fileArray) {
+        validatePDFFile(file);
+    }
+
+    // Check count
+    if (state.mergeFiles.length + fileArray.length > CONFIG.MAX_MERGE_FILES) {
+        throw new Error(`Maximum ${CONFIG.MAX_MERGE_FILES} files allowed.`);
+    }
+
+    // Add files
+    state.mergeFiles.push(...fileArray);
+    renderFileList();
+}
+
+function handleSingleFile(file) {
+    validatePDFFile(file);
+    state.selectedFile = file;
+    renderSelectedFile();
+}
+
+function renderFileList() {
+    if (state.mergeFiles.length === 0) {
+        DOM.fileList.classList.add('hidden');
         return;
     }
 
-    fileList.classList.remove('hidden');
-    mergeBtn.disabled = false;
-
-    fileList.innerHTML = files.map((file, index) => `
-        <div class="file-item rounded-xl p-4 flex items-center gap-4 cursor-move" data-index="${index}" draggable="true">
-            <div class="page-number">${index + 1}</div>
-            <svg class="w-5 h-5 text-purple-400 handle cursor-grab flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+    DOM.fileList.classList.remove('hidden');
+    DOM.fileList.innerHTML = state.mergeFiles.map((file, index) => `
+        <div class="file-item rounded-input p-3 flex items-center gap-3 cursor-move"
+             data-index="${index}"
+             draggable="true">
+            <span class="page-badge w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0">
+                ${index + 1}
+            </span>
+            <svg class="w-4 h-4 flex-shrink-0" style="color: var(--color-text-muted);"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16M4 16h16"/>
             </svg>
-            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z"/>
-                </svg>
-            </div>
-            <span class="flex-1 truncate text-sm font-medium text-gray-800">${file.name}</span>
-            <span class="text-xs text-gray-500 flex-shrink-0">${formatFileSize(file.size)}</span>
-            <button class="remove-file w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" data-index="${index}">
-                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            <svg class="w-5 h-5 flex-shrink-0" style="color: var(--color-error);"
+                 fill="currentColor" viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/>
+            </svg>
+            <span class="flex-1 text-sm truncate" style="color: var(--color-text);">${escapeHtml(file.name)}</span>
+            <span class="text-xs flex-shrink-0" style="color: var(--color-text-muted);">
+                ${formatFileSize(file.size)}
+            </span>
+            <button class="remove-file p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex-shrink-0"
+                    data-index="${index}"
+                    aria-label="Remove file">
+                <svg class="w-3.5 h-3.5" style="color: var(--color-error);"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
         </div>
     `).join('');
 
-    // Add drag and drop listeners
-    setupMergeDragAndDrop();
+    // Setup drag and drop
+    setupFileDragDrop();
 
-    // Add remove button listeners
-    fileList.querySelectorAll('.remove-file').forEach(btn => {
+    // Setup remove buttons
+    DOM.fileList.querySelectorAll('.remove-file').forEach(btn => {
         btn.addEventListener('click', (e) => {
+            e.stopPropagation();
             const index = parseInt(e.currentTarget.dataset.index);
-            state.merge.files.splice(index, 1);
-            updateMergeFileList();
+            state.mergeFiles.splice(index, 1);
+            renderFileList();
+            updateActionButton();
         });
     });
 }
 
-function setupMergeDragAndDrop() {
-    const items = elements.merge.fileList.querySelectorAll('.file-item');
+function setupFileDragDrop() {
+    const items = DOM.fileList.querySelectorAll('.file-item');
 
     items.forEach(item => {
         item.addEventListener('dragstart', (e) => {
-            state.merge.dragSrcEl = item;
+            state.dragSrcEl = item;
             item.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/html', item.innerHTML);
+            e.dataTransfer.setData('text/plain', String(item.dataset.index));
         });
 
         item.addEventListener('dragend', () => {
@@ -204,8 +336,7 @@ function setupMergeDragAndDrop() {
 
         item.addEventListener('dragover', (e) => {
             e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            if (item !== state.merge.dragSrcEl) {
+            if (item !== state.dragSrcEl) {
                 item.classList.add('drag-over');
             }
         });
@@ -216,287 +347,344 @@ function setupMergeDragAndDrop() {
 
         item.addEventListener('drop', (e) => {
             e.preventDefault();
-            e.stopPropagation();
-
-            if (state.merge.dragSrcEl !== item) {
-                const fromIndex = parseInt(state.merge.dragSrcEl.dataset.index);
+            if (state.dragSrcEl && state.dragSrcEl !== item) {
+                const fromIndex = parseInt(state.dragSrcEl.dataset.index);
                 const toIndex = parseInt(item.dataset.index);
-
-                // Reorder files array
-                const [movedFile] = state.merge.files.splice(fromIndex, 1);
-                state.merge.files.splice(toIndex, 0, movedFile);
-
-                updateMergeFileList();
+                const [moved] = state.mergeFiles.splice(fromIndex, 1);
+                state.mergeFiles.splice(toIndex, 0, moved);
+                renderFileList();
             }
-
-            return false;
         });
     });
 }
 
-function setupUploadZone(uploadZone, fileInput, onFilesSelected) {
-    uploadZone.addEventListener('click', () => fileInput.click());
-
-    uploadZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadZone.classList.add('drag-over');
-    });
-
-    uploadZone.addEventListener('dragleave', () => {
-        uploadZone.classList.remove('drag-over');
-    });
-
-    uploadZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadZone.classList.remove('drag-over');
-        onFilesSelected(e.dataTransfer.files);
-    });
-
-    fileInput.addEventListener('change', () => {
-        onFilesSelected(fileInput.files);
-        fileInput.value = ''; // Reset to allow selecting same file again
-    });
-}
-
-// Merge upload zone
-setupUploadZone(elements.merge.uploadZone, elements.merge.fileInput, (files) => {
-    hideStatus(elements.merge.status);
-
-    for (const file of files) {
-        try {
-            validatePDFFile(file);
-        } catch (err) {
-            showStatus(elements.merge.status, err.message, 'error');
-            return;
-        }
-    }
-
-    if (state.merge.files.length + files.length > MAX_MERGE_FILES) {
-        showStatus(elements.merge.status, `Maximum ${MAX_MERGE_FILES} de fișiere permise`, 'error');
+function renderSelectedFile() {
+    if (!state.selectedFile) {
+        DOM.fileDisplay.classList.add('hidden');
         return;
     }
 
-    state.merge.files.push(...Array.from(files));
-    updateMergeFileList();
-});
+    DOM.fileDisplay.classList.remove('hidden');
+    DOM.selectedFilename.textContent = state.selectedFile.name;
+}
 
-// Merge button
-elements.merge.mergeBtn.addEventListener('click', async () => {
-    const { files } = state.merge;
+function clearSelectedFile() {
+    state.selectedFile = null;
+    DOM.fileInput.value = '';
+    renderSelectedFile();
+    updateActionButton();
+}
 
-    if (files.length < 2) {
-        showStatus(elements.merge.status, 'Adaugă cel puțin 2 fișiere PDF', 'error');
-        return;
+// ============================================================================
+// UPLOAD ZONE EVENTS
+// ============================================================================
+
+function setupUploadZone() {
+    // Click to open file dialog
+    DOM.uploadZone.addEventListener('click', () => {
+        DOM.fileInput.click();
+    });
+
+    // File input change
+    DOM.fileInput.addEventListener('change', () => {
+        if (DOM.fileInput.files.length > 0) {
+            handleFiles(DOM.fileInput.files);
+        }
+    });
+
+    // Drag events
+    DOM.uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        DOM.uploadZone.classList.add('drag-over');
+    });
+
+    DOM.uploadZone.addEventListener('dragleave', () => {
+        DOM.uploadZone.classList.remove('drag-over');
+    });
+
+    DOM.uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        DOM.uploadZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length > 0) {
+            handleFiles(e.dataTransfer.files);
+        }
+    });
+
+    // Prevent default drag behavior on document
+    document.addEventListener('dragover', (e) => e.preventDefault());
+    document.addEventListener('drop', (e) => e.preventDefault());
+}
+
+// ============================================================================
+// ACTION HANDLING
+// ============================================================================
+
+function updateActionButton() {
+    const tool = state.currentTool;
+    let enabled = false;
+
+    if (tool === 'merge') {
+        enabled = state.mergeFiles.length >= 2;
+    } else {
+        enabled = state.selectedFile !== null && DOM.pagesSpecInput.value.trim() !== '';
     }
 
-    hideStatus(elements.merge.status);
-    showLoading('Se combină PDF-urile...');
+    DOM.actionBtn.disabled = !enabled;
+}
+
+function handlePagesSpecInput() {
+    updateActionButton();
+}
+
+async function processAction() {
+    const tool = state.currentTool;
+    if (!tool) return;
+
+    hideStatus();
+    showLoading();
 
     try {
-        const formData = new FormData();
-        files.forEach(file => {
-            formData.append('files', file);
-        });
+        let response;
+        const config = TOOLS[tool];
 
-        const response = await fetch('/api/merge', {
-            method: 'POST',
-            body: formData
-        });
+        if (tool === 'merge') {
+            response = await mergePDFs();
+        } else {
+            const pagesSpec = DOM.pagesSpecInput.value.trim();
+            if (tool === 'delete') {
+                response = await deletePages(pagesSpec);
+            } else {
+                response = await extractPages(pagesSpec);
+            }
+        }
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.detail || 'Failed to merge PDFs');
+            throw new Error(error.detail || 'Processing failed. Please try again.');
         }
 
-        // Get filename from Content-Disposition header
+        // Get filename from headers
         const contentDisposition = response.headers.get('Content-Disposition');
-        let filename = 'merged.pdf';
+        let filename = tool === 'merge' ? 'merged.pdf' :
+                       tool === 'delete' ? 'modified.pdf' : 'extracted.pdf';
         if (contentDisposition) {
             const match = contentDisposition.match(/filename="(.+)"/);
             if (match) filename = match[1];
         }
 
+        // Download file
         const blob = await response.blob();
         downloadBlob(blob, filename);
 
-        showStatus(elements.merge.status, 'PDF-uri combinate cu succes!', 'success');
+        // Show success and close modal
+        showToast(`${config.title} completed successfully`, 'success');
 
-        // Clear files after successful merge
-        state.merge.files = [];
-        updateMergeFileList();
+        if (tool === 'merge') {
+            state.mergeFiles = [];
+            renderFileList();
+        } else {
+            state.selectedFile = null;
+            DOM.pagesSpecInput.value = '';
+            renderSelectedFile();
+        }
+
+        updateActionButton();
+        setTimeout(closeModal, 1500);
 
     } catch (err) {
-        showStatus(elements.merge.status, err.message || 'An error occurred while merging PDFs', 'error');
+        showStatus(err.message, 'error');
+        showToast(err.message, 'error');
     } finally {
         hideLoading();
-    }
-});
-
-// Delete Pages Functionality
-function updateDeleteFileDisplay() {
-    const { file } = state.delete;
-    const { fileDisplay, filename, filesize, deleteBtn, pagesSpec } = elements.delete;
-
-    if (file) {
-        fileDisplay.classList.remove('hidden');
-        filename.textContent = file.name;
-        filesize.textContent = formatFileSize(file.size);
-        deleteBtn.disabled = !pagesSpec.value.trim();
-    } else {
-        fileDisplay.classList.add('hidden');
-        deleteBtn.disabled = true;
     }
 }
 
-setupUploadZone(elements.delete.uploadZone, elements.delete.fileInput, (files) => {
-    hideStatus(elements.delete.status);
+async function mergePDFs() {
+    const formData = new FormData();
+    state.mergeFiles.forEach(file => {
+        formData.append('files', file);
+    });
+    return fetch(CONFIG.API_ENDPOINTS.merge, {
+        method: 'POST',
+        body: formData
+    });
+}
 
-    if (files.length === 0) return;
+async function deletePages(pagesSpec) {
+    const formData = new FormData();
+    formData.append('file', state.selectedFile);
+    formData.append('pages_spec', pagesSpec);
+    return fetch(CONFIG.API_ENDPOINTS.delete, {
+        method: 'POST',
+        body: formData
+    });
+}
 
-    try {
-        validatePDFFile(files[0]);
-        state.delete.file = files[0];
-        updateDeleteFileDisplay();
-    } catch (err) {
-        showStatus(elements.delete.status, err.message, 'error');
-    }
-});
+async function extractPages(pagesSpec) {
+    const formData = new FormData();
+    formData.append('file', state.selectedFile);
+    formData.append('pages_spec', pagesSpec);
+    return fetch(CONFIG.API_ENDPOINTS.extract, {
+        method: 'POST',
+        body: formData
+    });
+}
 
-elements.delete.clearBtn.addEventListener('click', () => {
-    state.delete.file = null;
-    updateDeleteFileDisplay();
-});
+// ============================================================================
+// DOWNLOAD
+// ============================================================================
 
-elements.delete.pagesSpec.addEventListener('input', () => {
-    const { file } = state.delete;
-    elements.delete.deleteBtn.disabled = !file || !elements.delete.pagesSpec.value.trim();
-});
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
 
-elements.delete.deleteBtn.addEventListener('click', async () => {
-    const { file } = state.delete;
-    const pagesSpec = elements.delete.pagesSpec.value.trim();
+// ============================================================================
+// STATUS MESSAGES
+// ============================================================================
 
-    if (!file || !pagesSpec) return;
+function showStatus(message, type = 'info') {
+    DOM.statusMessage.classList.remove('hidden', 'success', 'error', 'info');
+    DOM.statusMessage.classList.add(type);
 
-    hideStatus(elements.delete.status);
-    showLoading('Se șterg paginile...');
+    const icons = {
+        success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+        error: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+        info: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'
+    };
 
-    try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('pages_spec', pagesSpec);
+    DOM.statusMessage.innerHTML = `
+        <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            ${icons[type]}
+        </svg>
+        <span class="text-sm">${escapeHtml(message)}</span>
+    `;
+}
 
-        const response = await fetch('/api/delete-pages', {
-            method: 'POST',
-            body: formData
-        });
+function hideStatus() {
+    DOM.statusMessage.classList.add('hidden');
+}
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.detail || 'Failed to delete pages');
-        }
+// ============================================================================
+// TOAST NOTIFICATIONS
+// ============================================================================
 
-        const contentDisposition = response.headers.get('Content-Disposition');
-        let filename = 'modified.pdf';
-        if (contentDisposition) {
-            const match = contentDisposition.match(/filename="(.+)"/);
-            if (match) filename = match[1];
-        }
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type} animate-slide-in`;
 
-        const blob = await response.blob();
-        downloadBlob(blob, filename);
+    const icons = {
+        success: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+        error: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+        info: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'
+    };
 
-        showStatus(elements.delete.status, 'Pagini șterse cu succes!', 'success');
+    const colors = {
+        success: 'var(--color-success)',
+        error: 'var(--color-error)',
+        info: 'var(--color-primary)'
+    };
 
-    } catch (err) {
-        showStatus(elements.delete.status, err.message || 'An error occurred while deleting pages', 'error');
-    } finally {
-        hideLoading();
-    }
-});
+    toast.innerHTML = `
+        <svg class="w-5 h-5 flex-shrink-0" style="color: ${colors[type]};" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            ${icons[type]}
+        </svg>
+        <span class="text-sm flex-1" style="color: var(--color-text);">${escapeHtml(message)}</span>
+        <button class="toast-close p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+            <svg class="w-4 h-4" style="color: var(--color-text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    `;
 
-// Extract Pages Functionality
-function updateExtractFileDisplay() {
-    const { file } = state.extract;
-    const { fileDisplay, filename, filesize, extractBtn, pagesSpec } = elements.extract;
+    // Close button
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+        removeToast(toast);
+    });
 
-    if (file) {
-        fileDisplay.classList.remove('hidden');
-        filename.textContent = file.name;
-        filesize.textContent = formatFileSize(file.size);
-        extractBtn.disabled = !pagesSpec.value.trim();
-    } else {
-        fileDisplay.classList.add('hidden');
-        extractBtn.disabled = true;
+    DOM.toastContainer.appendChild(toast);
+
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        removeToast(toast);
+    }, 4000);
+}
+
+function removeToast(toast) {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(20px)';
+    toast.style.transition = 'all 0.2s ease';
+    setTimeout(() => toast.remove(), 200);
+}
+
+// ============================================================================
+// LOADING STATE
+// ============================================================================
+
+function showLoading() {
+    const loadingTexts = {
+        merge: 'Merging PDFs...',
+        delete: 'Deleting pages...',
+        extract: 'Extracting pages...'
+    };
+    DOM.loadingText.textContent = loadingTexts[state.currentTool] || 'Processing...';
+    DOM.loadingOverlay.classList.remove('hidden');
+    DOM.loadingOverlay.classList.add('flex');
+}
+
+function hideLoading() {
+    DOM.loadingOverlay.classList.add('hidden');
+    DOM.loadingOverlay.classList.remove('flex');
+}
+
+// ============================================================================
+// KEYBOARD HANDLING
+// ============================================================================
+
+function handleKeydown(e) {
+    // Close modal on Escape
+    if (e.key === 'Escape' && !DOM.modalOverlay.classList.contains('hidden')) {
+        closeModal();
     }
 }
 
-setupUploadZone(elements.extract.uploadZone, elements.extract.fileInput, (files) => {
-    hideStatus(elements.extract.status);
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
 
-    if (files.length === 0) return;
+function init() {
+    // Theme
+    initTheme();
+    DOM.themeToggle.addEventListener('click', toggleTheme);
 
-    try {
-        validatePDFFile(files[0]);
-        state.extract.file = files[0];
-        updateExtractFileDisplay();
-    } catch (err) {
-        showStatus(elements.extract.status, err.message, 'error');
-    }
-});
+    // Upload zone
+    setupUploadZone();
 
-elements.extract.clearBtn.addEventListener('click', () => {
-    state.extract.file = null;
-    updateExtractFileDisplay();
-});
+    // Pages spec input
+    DOM.pagesSpecInput.addEventListener('input', handlePagesSpecInput);
 
-elements.extract.pagesSpec.addEventListener('input', () => {
-    const { file } = state.extract;
-    elements.extract.extractBtn.disabled = !file || !elements.extract.pagesSpec.value.trim();
-});
+    // Action button
+    DOM.actionBtn.addEventListener('click', processAction);
 
-elements.extract.extractBtn.addEventListener('click', async () => {
-    const { file } = state.extract;
-    const pagesSpec = elements.extract.pagesSpec.value.trim();
+    // Keyboard
+    document.addEventListener('keydown', handleKeydown);
 
-    if (!file || !pagesSpec) return;
-
-    hideStatus(elements.extract.status);
-    showLoading('Se extrag paginile...');
-
-    try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('pages_spec', pagesSpec);
-
-        const response = await fetch('/api/extract-pages', {
-            method: 'POST',
-            body: formData
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.detail || 'Failed to extract pages');
+    // Close modal on overlay click
+    DOM.modalOverlay.addEventListener('click', (e) => {
+        if (e.target === DOM.modalOverlay) {
+            closeModal();
         }
+    });
 
-        const contentDisposition = response.headers.get('Content-Disposition');
-        let filename = 'extracted.pdf';
-        if (contentDisposition) {
-            const match = contentDisposition.match(/filename="(.+)"/);
-            if (match) filename = match[1];
-        }
+    console.log('PDF Toolbox initialized');
+}
 
-        const blob = await response.blob();
-        downloadBlob(blob, filename);
-
-        showStatus(elements.extract.status, 'Pagini extrase cu succes!', 'success');
-
-    } catch (err) {
-        showStatus(elements.extract.status, err.message || 'An error occurred while extracting pages', 'error');
-    } finally {
-        hideLoading();
-    }
-});
-
-// Initialize
-console.log('PDF Toolbox initialized');
+// Start the app
+init();
