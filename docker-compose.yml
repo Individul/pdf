@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: pdf-toolbox-traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "80:80"
+      - "443:443"
+      # Optional: Traefik dashboard (disable in production or secure it)
+      # - "127.0.0.1:8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/letsencrypt:/letsencrypt
+    command:
+      - "--log.level=INFO"
+      - "--api.dashboard=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=${LE_EMAIL:-admin@example.com}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      # Redirect HTTP to HTTPS
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+    networks:
+      - traefik-net
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pdf-toolbox-app
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - PYTHONUNBUFFERED=1
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pdf-toolbox.rule=Host(`${DOMAIN:-pdf.example.com}`)"
+      - "traefik.http.routers.pdf-toolbox.entrypoints=websecure"
+      - "traefik.http.routers.pdf-toolbox.tls.certresolver=letsencrypt"
+      - "traefik.http.services.pdf-toolbox.loadbalancer.server.port=8000"
+      # Security headers
+      - "traefik.http.middlewares.security-headers.headers.accesscontrolallowmethods=GET,POST,OPTIONS"
+      - "traefik.http.middlewares.security-headers.headers.accesscontrolmaxage=100"
+      - "traefik.http.middlewares.security-headers.headers.addvaryheader=true"
+      - "traefik.http.middlewares.security-headers.headers.framedeny=true"
+      - "traefik.http.middlewares.security-headers.headers.browserxssfilter=true"
+      - "traefik.http.middlewares.security-headers.headers.contenttype nosniff=true"
+      - "traefik.http.routers.pdf-toolbox.middlewares=security-headers"
+    networks:
+      - traefik-net
+
+networks:
+  traefik-net:
+    driver: bridge
