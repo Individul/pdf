@@ -30,3 +30,6 @@ Thumbs.db
 # Traefik data
 traefik/
 traefik/letsencrypt/
+
+# Claude Code settings
+.claude/
