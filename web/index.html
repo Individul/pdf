@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Simple online PDF tools - Merge, delete pages, and extract pages from your PDF files.">
-    <title>PDF Toolbox - Simple Online PDF Tools</title>
+    <meta name="description" content="Instrumente PDF online simple - Unește, șterge pagini și extrage pagini din fișierele tale PDF.">
+    <title>PDF Toolbox - Instrumente PDF Online</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -373,7 +373,7 @@
 </head>
 <body class="min-h-screen">
     <!-- Dark mode toggle -->
-    <button id="theme-toggle" class="fixed top-6 right-6 z-50 w-10 h-10 rounded-lg btn-secondary flex items-center justify-center" aria-label="Toggle dark mode">
+    <button id="theme-toggle" class="fixed top-6 right-6 z-50 w-10 h-10 rounded-lg btn-secondary flex items-center justify-center" aria-label="Comută modul întunecat">
         <svg class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM2.25 12a.75.75 0 01.75-.75h2.25a.75.75 0 010 1.5H3a.75.75 0 01-.75-.75zM12 18.75a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25a.75.75 0 01.75-.75zM7.5 15a.75.75 0 01.75.75h2.25a.75.75 0 010 1.5H8.25A.75.75 0 017.5 15zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.25 15a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5h2.25a.75.75 0 01.75.75zM12 5.25a.75.75 0 01.75-.75h2.25a.75.75 0 010 1.5h-2.25A.75.75 0 0112 5.25z"/>
         </svg>
@@ -395,7 +395,7 @@
                 PDF Toolbox
             </h1>
             <p class="text-lg" style="color: var(--color-text-muted);">
-                Simple online PDF tools
+                Instrumente PDF online simple
             </p>
         </header>
 
@@ -408,9 +408,9 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6.413 7.5l6.762 9v9H4.5v-9l6.762-9zm0 0L12 12.074M17.5 7.5l6.762 9v9H15.5v-9l6.762-9zm0 0L22 12.074"/>
                     </svg>
                 </div>
-                <h3 class="font-semibold text-base mb-2" style="color: var(--color-text);">Merge PDFs</h3>
+                <h3 class="font-semibold text-base mb-2" style="color: var(--color-text);">Unește PDF-uri</h3>
                 <p class="text-sm leading-relaxed" style="color: var(--color-text-muted);">
-                    Combine multiple PDF files into a single document. Reorder files before merging.
+                    Combină mai multe fișiere PDF într-un singur document. Reordonează fișierele înainte de unire.
                 </p>
             </div>
 
@@ -421,9 +421,9 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>
                     </svg>
                 </div>
-                <h3 class="font-semibold text-base mb-2" style="color: var(--color-text);">Delete Pages</h3>
+                <h3 class="font-semibold text-base mb-2" style="color: var(--color-text);">Șterge Pagini</h3>
                 <p class="text-sm leading-relaxed" style="color: var(--color-text-muted);">
-                    Remove specific pages from your PDF by specifying page numbers or ranges.
+                    Elimină pagini specifice din PDF-ul tău specificând numerele paginilor sau intervale.
                 </p>
             </div>
 
@@ -434,16 +434,16 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776"/>
                     </svg>
                 </div>
-                <h3 class="font-semibold text-base mb-2" style="color: var(--color-text);">Extract Pages</h3>
+                <h3 class="font-semibold text-base mb-2" style="color: var(--color-text);">Extrage Pagini</h3>
                 <p class="text-sm leading-relaxed" style="color: var(--color-text-muted);">
-                    Create a new PDF containing only the pages you specify from your document.
+                    Creează un PDF nou care conține doar paginile specificate din documentul tău.
                 </p>
             </div>
         </div>
 
         <!-- Footer -->
         <footer class="text-center text-sm" style="color: var(--color-text-muted);">
-            <p>All processing happens on the server. Your files are not stored after processing.</p>
+            <p>Toate procesările se fac pe server. Fișierele tale nu sunt stocate după procesare.</p>
         </footer>
     </div>
 
@@ -471,7 +471,7 @@
                     <svg class="w-10 h-10 mx-auto mb-3" style="color: var(--color-text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                     </svg>
-                    <p class="text-sm font-medium mb-1" style="color: var(--color-text);">Drop PDF files here or click to upload</p>
+                    <p class="text-sm font-medium mb-1" style="color: var(--color-text);">Trage fișierele PDF aici sau click pentru a încărca</p>
                     <p class="text-xs" style="color: var(--color-text-muted);" id="upload-hint">Maximum 100 MB per file</p>
                     <input type="file" id="file-input" class="hidden" accept="application/pdf">
                 </div>
@@ -501,11 +501,11 @@
                 <!-- Pages Specification (for delete/extract) -->
                 <div id="pages-spec-container" class="mb-5 hidden">
                     <label id="pages-spec-label" class="block text-sm font-medium mb-2" style="color: var(--color-text);">
-                        Pages to delete
+                        Paginile de șters
                     </label>
-                    <input type="text" id="pages-spec-input" class="input-field w-full rounded-input px-4 py-2.5 text-sm" placeholder="e.g., 1,3,5-7">
+                    <input type="text" id="pages-spec-input" class="input-field w-full rounded-input px-4 py-2.5 text-sm" placeholder="ex: 1,3,5-7">
                     <p class="text-xs mt-2" style="color: var(--color-text-muted);">
-                        Enter page numbers separated by commas. Use hyphens for ranges (e.g., 1-5).
+                        Introdu numerele paginilor separate prin virgulă. Folosește cratima pentru intervale (ex: 1-5).
                     </p>
                 </div>
 
@@ -518,10 +518,10 @@
             <!-- Modal Footer -->
             <div class="px-6 py-4 border-t flex items-center justify-between" style="border-color: var(--color-border);">
                 <button onclick="closeModal()" class="btn-secondary px-4 py-2 rounded-input text-sm font-medium">
-                    Cancel
+                    Anulează
                 </button>
                 <button id="action-btn" class="btn-primary px-5 py-2.5 rounded-input text-sm font-medium" disabled>
-                    Process
+                    Procesează
                 </button>
             </div>
         </div>
@@ -531,8 +531,8 @@
     <div id="loading-overlay" class="modal-overlay fixed inset-0 z-50 hidden items-center justify-center">
         <div class="modal-card rounded-card p-8 text-center">
             <div class="spinner w-10 h-10 mx-auto mb-4"></div>
-            <p id="loading-text" class="font-medium" style="color: var(--color-text);">Processing...</p>
-            <p class="text-sm mt-1" style="color: var(--color-text-muted);">This may take a moment</p>
+            <p id="loading-text" class="font-medium" style="color: var(--color-text);">Se procesează...</p>
+            <p class="text-sm mt-1" style="color: var(--color-text-muted);">Acest lucru poate dura câteva secunde</p>
         </div>
     </div>
 

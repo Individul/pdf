@@ -1,10 +1,10 @@
 /**
- * PDF Toolbox - Professional Frontend
- * Clean, minimal PDF tools with modal interface
+ * PDF Toolbox - Frontend Profesional
+ * Instrumente PDF simple cu interfață modal
  */
 
 // ============================================================================
-// CONFIGURATION
+// CONFIGURARE
 // ============================================================================
 
 const CONFIG = {
@@ -18,7 +18,7 @@ const CONFIG = {
 };
 
 // ============================================================================
-// STATE
+// STARE
 // ============================================================================
 
 const state = {
@@ -30,11 +30,11 @@ const state = {
 };
 
 // ============================================================================
-// DOM ELEMENTS
+// ELEMENTE DOM
 // ============================================================================
 
 const DOM = {
-    // Theme
+    // Temă
     themeToggle: document.getElementById('theme-toggle'),
     html: document.documentElement,
 
@@ -48,23 +48,23 @@ const DOM = {
     fileInput: document.getElementById('file-input'),
     uploadHint: document.getElementById('upload-hint'),
 
-    // File display
+    // Afișare fișiere
     fileList: document.getElementById('file-list'),
     fileDisplay: document.getElementById('file-display'),
     selectedFilename: document.getElementById('selected-filename'),
 
-    // Pages spec
+    // Specificare pagini
     pagesSpecContainer: document.getElementById('pages-spec-container'),
     pagesSpecLabel: document.getElementById('pages-spec-label'),
     pagesSpecInput: document.getElementById('pages-spec-input'),
 
-    // Actions
+    // Acțiuni
     actionBtn: document.getElementById('action-btn'),
 
     // Status
     statusMessage: document.getElementById('status-message'),
 
-    // Loading
+    // Încărcare
     loadingOverlay: document.getElementById('loading-overlay'),
     loadingText: document.getElementById('loading-text'),
 
@@ -73,40 +73,40 @@ const DOM = {
 };
 
 // ============================================================================
-// TOOL CONFIGURATIONS
+// CONFIGURARE UNelte
 // ============================================================================
 
 const TOOLS = {
     merge: {
-        title: 'Merge PDFs',
-        description: 'Combine multiple PDF files into a single document.',
-        actionLabel: 'Merge',
+        title: 'Unește PDF-uri',
+        description: 'Combină mai multe fișiere PDF într-un singur document.',
+        actionLabel: 'Unește',
         multipleFiles: true,
         showPagesSpec: false,
-        uploadHint: `Up to ${CONFIG.MAX_MERGE_FILES} files, 100 MB each`
+        uploadHint: `Până la ${CONFIG.MAX_MERGE_FILES} fișiere, 100 MB fiecare`
     },
     delete: {
-        title: 'Delete Pages',
-        description: 'Remove specific pages from your PDF.',
-        actionLabel: 'Delete & Download',
+        title: 'Șterge Pagini',
+        description: 'Elimină pagini specifice din PDF-ul tău.',
+        actionLabel: 'Șterge & Descarcă',
         multipleFiles: false,
         showPagesSpec: true,
-        pagesSpecLabel: 'Pages to delete',
+        pagesSpecLabel: 'Paginile de șters',
         uploadHint: 'Maximum 100 MB'
     },
     extract: {
-        title: 'Extract Pages',
-        description: 'Create a new PDF with selected pages.',
-        actionLabel: 'Extract & Download',
+        title: 'Extrage Pagini',
+        description: 'Creează un PDF nou cu paginile selectate.',
+        actionLabel: 'Extrage & Descarcă',
         multipleFiles: false,
         showPagesSpec: true,
-        pagesSpecLabel: 'Pages to extract',
+        pagesSpecLabel: 'Paginile de extras',
         uploadHint: 'Maximum 100 MB'
     }
 };
 
 // ============================================================================
-// UTILITY FUNCTIONS
+// FUNCȚII UTILITARE
 // ============================================================================
 
 function formatFileSize(bytes) {
@@ -124,7 +124,7 @@ function escapeHtml(text) {
 }
 
 // ============================================================================
-// THEME MANAGEMENT
+// MANAGEMENT TEMĂ
 // ============================================================================
 
 function initTheme() {
@@ -149,24 +149,24 @@ function toggleTheme() {
 }
 
 // ============================================================================
-// MODAL MANAGEMENT
+// MANAGEMENT MODAL
 // ============================================================================
 
 function openModal(tool) {
     state.currentTool = tool;
     const config = TOOLS[tool];
 
-    // Update modal content
+    // Actualizează conținutul modalului
     DOM.modalTitle.textContent = config.title;
     DOM.modalDescription.textContent = config.description;
     DOM.actionBtn.textContent = config.actionLabel;
     DOM.uploadHint.textContent = config.uploadHint;
 
-    // Reset file input
+    // Reset input fișier
     DOM.fileInput.value = '';
     DOM.fileInput.multiple = config.multipleFiles;
 
-    // Reset state
+    // Reset stare
     if (tool === 'merge') {
         state.mergeFiles = [];
         DOM.fileList.classList.add('hidden');
@@ -177,7 +177,7 @@ function openModal(tool) {
         DOM.fileDisplay.classList.add('hidden');
     }
 
-    // Pages spec
+    // Specificare pagini
     if (config.showPagesSpec) {
         DOM.pagesSpecContainer.classList.remove('hidden');
         DOM.pagesSpecLabel.textContent = config.pagesSpecLabel;
@@ -186,17 +186,17 @@ function openModal(tool) {
         DOM.pagesSpecContainer.classList.add('hidden');
     }
 
-    // Hide status
+    // Ascunde status
     hideStatus();
 
-    // Update button state
+    // Actualizează butonul
     updateActionButton();
 
-    // Show modal
+    // Afișează modalul
     DOM.modalOverlay.classList.remove('hidden');
     DOM.modalOverlay.classList.add('flex');
 
-    // Focus upload zone after animation
+    // Focus pe zona de upload după animație
     setTimeout(() => DOM.uploadZone.focus(), 100);
 }
 
@@ -207,21 +207,21 @@ function closeModal() {
 }
 
 // ============================================================================
-// FILE VALIDATION
+// VALIDARE FIȘIERE
 // ============================================================================
 
 function validatePDFFile(file) {
     if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
-        throw new Error('Please select a valid PDF file.');
+        throw new Error('Te rog selectează un fișier PDF valid.');
     }
     if (file.size > CONFIG.MAX_FILE_SIZE) {
-        throw new Error(`File too large. Maximum size is ${formatFileSize(CONFIG.MAX_FILE_SIZE)}.`);
+        throw new Error(`Fișier prea mare. Dimensiune maximă: ${formatFileSize(CONFIG.MAX_FILE_SIZE)}.`);
     }
     return true;
 }
 
 // ============================================================================
-// FILE UPLOAD HANDLING
+// MANAGEMENT INCĂRCARE FIȘIERE
 // ============================================================================
 
 function handleFiles(files) {
@@ -245,17 +245,17 @@ function handleFiles(files) {
 function handleMergeFiles(files) {
     const fileArray = Array.from(files);
 
-    // Validate all files
+    // Validează toate fișierele
     for (const file of fileArray) {
         validatePDFFile(file);
     }
 
-    // Check count
+    // Verifică numărul
     if (state.mergeFiles.length + fileArray.length > CONFIG.MAX_MERGE_FILES) {
-        throw new Error(`Maximum ${CONFIG.MAX_MERGE_FILES} files allowed.`);
+        throw new Error(`Maximum ${CONFIG.MAX_MERGE_FILES} fișiere permise.`);
     }
 
-    // Add files
+    // Adaugă fișierele
     state.mergeFiles.push(...fileArray);
     renderFileList();
 }
@@ -294,7 +294,7 @@ function renderFileList() {
             </span>
             <button class="remove-file p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex-shrink-0"
                     data-index="${index}"
-                    aria-label="Remove file">
+                    aria-label="Elimină fișierul">
                 <svg class="w-3.5 h-3.5" style="color: var(--color-error);"
                      fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -306,7 +306,7 @@ function renderFileList() {
     // Setup drag and drop
     setupFileDragDrop();
 
-    // Setup remove buttons
+    // Setup butoane de eliminare
     DOM.fileList.querySelectorAll('.remove-file').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -376,23 +376,23 @@ function clearSelectedFile() {
 }
 
 // ============================================================================
-// UPLOAD ZONE EVENTS
+// EVENIMENTE ZONĂ INCĂRCARE
 // ============================================================================
 
 function setupUploadZone() {
-    // Click to open file dialog
+    // Click pentru a deschide dialogul de fișiere
     DOM.uploadZone.addEventListener('click', () => {
         DOM.fileInput.click();
     });
 
-    // File input change
+    // Schimbare input fișier
     DOM.fileInput.addEventListener('change', () => {
         if (DOM.fileInput.files.length > 0) {
             handleFiles(DOM.fileInput.files);
         }
     });
 
-    // Drag events
+    // Evenimente drag
     DOM.uploadZone.addEventListener('dragover', (e) => {
         e.preventDefault();
         DOM.uploadZone.classList.add('drag-over');
@@ -410,13 +410,13 @@ function setupUploadZone() {
         }
     });
 
-    // Prevent default drag behavior on document
+    // Previne comportamentul default pentru drag pe document
     document.addEventListener('dragover', (e) => e.preventDefault());
     document.addEventListener('drop', (e) => e.preventDefault());
 }
 
 // ============================================================================
-// ACTION HANDLING
+// MANAGEMENT ACȚIUNI
 // ============================================================================
 
 function updateActionButton() {
@@ -460,24 +460,24 @@ async function processAction() {
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.detail || 'Processing failed. Please try again.');
+            throw new Error(error.detail || 'Procesarea a eșuat. Te rog încearcă din nou.');
         }
 
-        // Get filename from headers
+        // Obține numele fișierului din headere
         const contentDisposition = response.headers.get('Content-Disposition');
-        let filename = tool === 'merge' ? 'merged.pdf' :
-                       tool === 'delete' ? 'modified.pdf' : 'extracted.pdf';
+        let filename = tool === 'merge' ? 'unit.pdf' :
+                       tool === 'delete' ? 'modificat.pdf' : 'extras.pdf';
         if (contentDisposition) {
             const match = contentDisposition.match(/filename="(.+)"/);
             if (match) filename = match[1];
         }
 
-        // Download file
+        // Descarcă fișierul
         const blob = await response.blob();
         downloadBlob(blob, filename);
 
-        // Show success and close modal
-        showToast(`${config.title} completed successfully`, 'success');
+        // Afișează succes și închide modalul
+        showToast(`${config.title} finalizat cu succes`, 'success');
 
         if (tool === 'merge') {
             state.mergeFiles = [];
@@ -531,7 +531,7 @@ async function extractPages(pagesSpec) {
 }
 
 // ============================================================================
-// DOWNLOAD
+// DESCĂRCARE
 // ============================================================================
 
 function downloadBlob(blob, filename) {
@@ -547,7 +547,7 @@ function downloadBlob(blob, filename) {
 }
 
 // ============================================================================
-// STATUS MESSAGES
+// MESAJE STATUS
 // ============================================================================
 
 function showStatus(message, type = 'info') {
@@ -573,7 +573,7 @@ function hideStatus() {
 }
 
 // ============================================================================
-// TOAST NOTIFICATIONS
+// NOTIFICĂRI TOAST
 // ============================================================================
 
 function showToast(message, type = 'info') {
@@ -604,14 +604,14 @@ function showToast(message, type = 'info') {
         </button>
     `;
 
-    // Close button
+    // Buton închidere
     toast.querySelector('.toast-close').addEventListener('click', () => {
         removeToast(toast);
     });
 
     DOM.toastContainer.appendChild(toast);
 
-    // Auto remove after 4 seconds
+    // Elimină automat după 4 secunde
     setTimeout(() => {
         removeToast(toast);
     }, 4000);
@@ -625,16 +625,16 @@ function removeToast(toast) {
 }
 
 // ============================================================================
-// LOADING STATE
+// STARE ÎNCĂRCARE
 // ============================================================================
 
 function showLoading() {
     const loadingTexts = {
-        merge: 'Merging PDFs...',
-        delete: 'Deleting pages...',
-        extract: 'Extracting pages...'
+        merge: 'Se unesc PDF-urile...',
+        delete: 'Se șterg paginile...',
+        extract: 'Se extrag paginile...'
     };
-    DOM.loadingText.textContent = loadingTexts[state.currentTool] || 'Processing...';
+    DOM.loadingText.textContent = loadingTexts[state.currentTool] || 'Se procesează...';
     DOM.loadingOverlay.classList.remove('hidden');
     DOM.loadingOverlay.classList.add('flex');
 }
@@ -645,46 +645,46 @@ function hideLoading() {
 }
 
 // ============================================================================
-// KEYBOARD HANDLING
+// MANAGEMENT TASTATURĂ
 // ============================================================================
 
 function handleKeydown(e) {
-    // Close modal on Escape
+    // Închide modal la Escape
     if (e.key === 'Escape' && !DOM.modalOverlay.classList.contains('hidden')) {
         closeModal();
     }
 }
 
 // ============================================================================
-// INITIALIZATION
+// INIȚIALIZARE
 // ============================================================================
 
 function init() {
-    // Theme
+    // Temă
     initTheme();
     DOM.themeToggle.addEventListener('click', toggleTheme);
 
-    // Upload zone
+    // Zonă upload
     setupUploadZone();
 
-    // Pages spec input
+    // Input specificare pagini
     DOM.pagesSpecInput.addEventListener('input', handlePagesSpecInput);
 
-    // Action button
+    // Buton acțiune
     DOM.actionBtn.addEventListener('click', processAction);
 
-    // Keyboard
+    // Tastatură
     document.addEventListener('keydown', handleKeydown);
 
-    // Close modal on overlay click
+    // Închide modal la click pe overlay
     DOM.modalOverlay.addEventListener('click', (e) => {
         if (e.target === DOM.modalOverlay) {
             closeModal();
         }
     });
 
-    console.log('PDF Toolbox initialized');
+    console.log('PDF Toolbox inițializat');
 }
 
-// Start the app
+// Pornește aplicația
 init();
