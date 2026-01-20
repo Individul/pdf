@@ -72,11 +72,18 @@ function formatFileSize(bytes) {
 
 function showStatus(container, message, type = 'info') {
     container.classList.remove('hidden');
-    container.className = 'mt-4 p-4 rounded-lg ' +
-        (type === 'error' ? 'bg-red-50 text-red-700' :
-         type === 'success' ? 'bg-green-50 text-green-700' :
-         'bg-blue-50 text-blue-700');
-    container.textContent = message;
+    container.className = 'rounded-xl p-4 flex items-center gap-3 ' +
+        (type === 'error' ? 'status-error text-red-800' :
+         type === 'success' ? 'status-success text-green-800' :
+         'status-info text-blue-800');
+    container.innerHTML = `
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            ${type === 'error' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>' :
+              type === 'success' ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>' :
+              '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'}
+        </svg>
+        <span>${message}</span>
+    `;
 }
 
 function hideStatus(container) {
@@ -110,11 +117,9 @@ elements.tabs.forEach(tab => {
 
         // Update tab buttons
         elements.tabs.forEach(t => {
-            t.classList.remove('border-blue-500', 'text-blue-600');
-            t.classList.add('border-transparent', 'text-gray-500');
+            t.classList.remove('active');
         });
-        tab.classList.remove('border-transparent', 'text-gray-500');
-        tab.classList.add('border-blue-500', 'text-blue-600');
+        tab.classList.add('active');
 
         // Update panels
         Object.values(elements.panels).forEach(panel => panel.classList.add('hidden'));
@@ -125,10 +130,10 @@ elements.tabs.forEach(tab => {
 // File Validation
 function validatePDFFile(file) {
     if (!file.type.includes('pdf') && !file.name.toLowerCase().endsWith('.pdf')) {
-        throw new Error('Please select a PDF file');
+        throw new Error('Selectează un fișier PDF');
     }
     if (file.size > MAX_FILE_SIZE) {
-        throw new Error(`File too large. Maximum size is ${formatFileSize(MAX_FILE_SIZE)}`);
+        throw new Error(`Fișier prea mare. Dimensiune maximă: ${formatFileSize(MAX_FILE_SIZE)}`);
     }
     return true;
 }
@@ -148,17 +153,20 @@ function updateMergeFileList() {
     mergeBtn.disabled = false;
 
     fileList.innerHTML = files.map((file, index) => `
-        <div class="file-item flex items-center gap-3 bg-gray-50 rounded-lg p-3 cursor-move" data-index="${index}" draggable="true">
-            <svg class="w-5 h-5 text-gray-400 handle cursor-grab" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="file-item rounded-xl p-4 flex items-center gap-4 cursor-move" data-index="${index}" draggable="true">
+            <div class="page-number">${index + 1}</div>
+            <svg class="w-5 h-5 text-purple-400 handle cursor-grab flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
             </svg>
-            <svg class="w-6 h-6 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z"/>
-            </svg>
-            <span class="flex-1 truncate text-sm text-gray-700">${file.name}</span>
-            <span class="text-xs text-gray-400">${formatFileSize(file.size)}</span>
-            <button class="remove-file p-1 hover:bg-gray-200 rounded" data-index="${index}">
-                <svg class="w-4 h-4 text-gray-400 hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2Z"/>
+                </svg>
+            </div>
+            <span class="flex-1 truncate text-sm font-medium text-gray-800">${file.name}</span>
+            <span class="text-xs text-gray-500 flex-shrink-0">${formatFileSize(file.size)}</span>
+            <button class="remove-file w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" data-index="${index}">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
@@ -264,7 +272,7 @@ setupUploadZone(elements.merge.uploadZone, elements.merge.fileInput, (files) => 
     }
 
     if (state.merge.files.length + files.length > MAX_MERGE_FILES) {
-        showStatus(elements.merge.status, `Maximum ${MAX_MERGE_FILES} files allowed`, 'error');
+        showStatus(elements.merge.status, `Maximum ${MAX_MERGE_FILES} de fișiere permise`, 'error');
         return;
     }
 
@@ -277,12 +285,12 @@ elements.merge.mergeBtn.addEventListener('click', async () => {
     const { files } = state.merge;
 
     if (files.length < 2) {
-        showStatus(elements.merge.status, 'Please add at least 2 PDF files', 'error');
+        showStatus(elements.merge.status, 'Adaugă cel puțin 2 fișiere PDF', 'error');
         return;
     }
 
     hideStatus(elements.merge.status);
-    showLoading('Merging PDFs...');
+    showLoading('Se combină PDF-urile...');
 
     try {
         const formData = new FormData();
@@ -311,7 +319,7 @@ elements.merge.mergeBtn.addEventListener('click', async () => {
         const blob = await response.blob();
         downloadBlob(blob, filename);
 
-        showStatus(elements.merge.status, 'PDFs merged successfully!', 'success');
+        showStatus(elements.merge.status, 'PDF-uri combinate cu succes!', 'success');
 
         // Clear files after successful merge
         state.merge.files = [];
@@ -371,7 +379,7 @@ elements.delete.deleteBtn.addEventListener('click', async () => {
     if (!file || !pagesSpec) return;
 
     hideStatus(elements.delete.status);
-    showLoading('Deleting pages...');
+    showLoading('Se șterg paginile...');
 
     try {
         const formData = new FormData();
@@ -398,7 +406,7 @@ elements.delete.deleteBtn.addEventListener('click', async () => {
         const blob = await response.blob();
         downloadBlob(blob, filename);
 
-        showStatus(elements.delete.status, 'Pages deleted successfully!', 'success');
+        showStatus(elements.delete.status, 'Pagini șterse cu succes!', 'success');
 
     } catch (err) {
         showStatus(elements.delete.status, err.message || 'An error occurred while deleting pages', 'error');
@@ -454,7 +462,7 @@ elements.extract.extractBtn.addEventListener('click', async () => {
     if (!file || !pagesSpec) return;
 
     hideStatus(elements.extract.status);
-    showLoading('Extracting pages...');
+    showLoading('Se extrag paginile...');
 
     try {
         const formData = new FormData();
@@ -481,7 +489,7 @@ elements.extract.extractBtn.addEventListener('click', async () => {
         const blob = await response.blob();
         downloadBlob(blob, filename);
 
-        showStatus(elements.extract.status, 'Pages extracted successfully!', 'success');
+        showStatus(elements.extract.status, 'Pagini extrase cu succes!', 'success');
 
     } catch (err) {
         showStatus(elements.extract.status, err.message || 'An error occurred while extracting pages', 'error');
