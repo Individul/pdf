@@ -82,7 +82,7 @@ def merge_pdfs(files: List[BinaryIO], output_filename: str = "merged.pdf") -> by
     if not files:
         raise PDFError("No files provided for merging")
 
-    merged_pdf = pikepdf.New()
+    merged_pdf = pikepdf.Pdf.new()
 
     for i, file_obj in enumerate(files):
         try:
@@ -143,7 +143,7 @@ def delete_pages(
         keep_pages = pages_to_keep(pages_spec, total_pages, mode="delete")
 
         # Create new PDF with only the pages we want to keep
-        output_pdf = pikepdf.New()
+        output_pdf = pikepdf.Pdf.new()
         for page_num in keep_pages:
             # pikepdf uses 0-based indexing internally
             output_pdf.pages.append(source_pdf.pages[page_num - 1])
@@ -193,7 +193,7 @@ def extract_pages(
         extract_pages_list = pages_to_keep(pages_spec, total_pages, mode="extract")
 
         # Create new PDF with extracted pages
-        output_pdf = pikepdf.New()
+        output_pdf = pikepdf.Pdf.new()
         for page_num in extract_pages_list:
             # pikepdf uses 0-based indexing internally
             output_pdf.pages.append(source_pdf.pages[page_num - 1])
