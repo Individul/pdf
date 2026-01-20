@@ -148,11 +148,9 @@ async def merge_pdfs_endpoint(files: List[UploadFile] = File(...)):
     - Accepts up to 20 PDF files
     - Returns the merged PDF as a downloadable file
     """
-    client_ip = "unknown"
     try:
-        client_ip = get_client_ip(None)  # Will be set from request context
-
-        # Check rate limit (optional - can be disabled for MVP)
+        # Note: Rate limiting is disabled for MVP
+        # To enable, use Request object from FastAPI to get client IP
         # if not check_rate_limit(client_ip):
         #     raise HTTPException(
         #         status_code=status.HTTP_429_TOO_MANY_REQUESTS,
